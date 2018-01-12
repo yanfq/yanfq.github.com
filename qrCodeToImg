@@ -1,0 +1,59 @@
+
+<img id="id_wxtwoCode"src="qrCodeToImg接口地址"/>
+	/**
+	 * 生成二维码图片并直接以流的形式输出到页面
+	 * @param code_url
+	 * @param response
+	 */
+	@RequestMapping("qrCodeToImg")
+	@ResponseBody
+	public void getQRCode(String code_url,HttpServletResponse response){
+		logger.info("======================================getQRCode======="+code_url);
+		WeixinUtil.encodeQrcode(code_url, response);
+	}
+  
+  
+  
+     /**
+     * 生成二维码图片 不存储 直接以流的形式输出到页面  使用了ZXing.jar
+     * @param content
+     * @param response
+     */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public static void encodeQrcode(String content,HttpServletResponse response){
+        if(content==null || "".equals(content))
+            return;
+        MultiFormatWriter multiFormatWriter = new MultiFormatWriter();
+        Map hints = new HashMap();
+        hints.put(EncodeHintType.CHARACTER_SET, "UTF-8"); //设置字符集编码类型
+        BitMatrix bitMatrix = null;
+        try {
+            bitMatrix = multiFormatWriter.encode(content, BarcodeFormat.QR_CODE, 300, 300,hints);
+            BufferedImage image = toBufferedImage(bitMatrix);
+            //输出二维码图片流
+            try {
+                ImageIO.write(image, "png", response.getOutputStream());
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        } catch (WriterException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
+    }
+
+    public static BufferedImage toBufferedImage(BitMatrix matrix) {
+        int BLACK = 0xFF000000;
+        int WHITE = 0xFFFFFFFF;
+        int width = matrix.getWidth();
+        int height = matrix.getHeight();
+        BufferedImage image = new BufferedImage(width, height,
+                BufferedImage.TYPE_INT_RGB);
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                image.setRGB(x, y, matrix.get(x, y) ? BLACK : WHITE);
+            }
+        }
+        return image;
+    }
